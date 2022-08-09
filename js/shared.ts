@@ -51,8 +51,10 @@ export function bufferEqual(a: Buffer, b: Buffer): boolean {
 
 // ------------------------ Contract functions ------------------------
 
-export const contractLoader = (filename: string) => {
-	const sourceCode = readString(filename);
+export const contractLoader = (...filenames: string[]) => {
+	const sourceCode = filenames
+		.map(filename =>  readString(filename) + `\n\n;; end of <<<<< ${filename} >>>>>`)
+		.join('\n\n\n\n\n');
 	return (dataCell: Cell) => SmartContract.fromFuncSource(sourceCode, dataCell);
 };
 
