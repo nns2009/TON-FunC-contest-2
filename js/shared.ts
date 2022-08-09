@@ -149,12 +149,22 @@ export const cell = (...content: (Cell | Buffer | Message)[]) => {
 	return c;
 };
 
+export const cellToBoc = (cell: Cell) => {
+	return cell.toBoc({idx: false}).toString('base64');
+}
+export const bocToCell = (boc: string) => {
+	return Cell.fromBoc(Buffer.from(boc, 'base64'))[0];
+}
 export const sliceEqual = (a: Slice, b: Slice) =>
 	a.toCell().equals(b.toCell());
 
 export const addressEqual = (a: Address | null, b: Address | null) =>
 	(!a && !b) || (a && b && a.equals(b));
 
+
+
+
+// ------------------------ Messages ------------------------
 
 export const internalMessage = (
 	address: Address,
