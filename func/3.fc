@@ -1,0 +1,240 @@
+(slice, slice, int) safe_load_msg_addr(slice sc) asm(-> 1 0 2) "LDMSGADDRQ NULLROTRIFNOT";
+
+() recv_internal() {}
+
+(int, tuple) validate_message(cell message) method_id {
+	slice src;
+	slice dest;
+	int amount;
+	slice cs = message.begin_parse();
+	if (message.begin_parse().slice_data_empty?()) {
+		return (0, null());
+	}
+	int c0 = message.begin_parse()~load_uint(1);
+	if ([object Object]) {
+		if (message.begin_parse().slice_data_empty?()) {
+			return (0, null());
+		}
+		int c1 = message.begin_parse()~load_uint(1);
+		if ([object Object]) {
+		} else {
+			(src, int ok) = message.begin_parse()~safe_load_msg_addr();
+			if (~ ok) {
+				return (0, null());
+			}
+			if ((src.slice_bits() == 2) & (src.preload_uint(2) == 0)) {
+				src = null();
+			}
+			(dest, int ok) = message.begin_parse()~safe_load_msg_addr();
+			if (~ ok) {
+				return (0, null());
+			}
+			if ((dest.slice_bits() == 2) & (dest.preload_uint(2) == 0)) {
+				dest = null();
+			}
+			if (message.begin_parse().slice_bits() < 5) {
+				return (0, null());
+			}
+			int byte_len = message.begin_parse()~load_uint(5);
+			if (message.begin_parse()~load_uint(5) > 16) {
+				return (0, null());
+			}
+			if (message.begin_parse().slice_bits() < message.begin_parse()~load_uint(5) * 8) {
+				return (0, null());
+			}
+			message.begin_parse()~load_uint(message.begin_parse()~load_uint(5) * 8);
+	} else {
+		if (message.begin_parse().slice_bits() < 3) {
+			return (0, null());
+		}
+		message.begin_parse()~load_bits(3);
+		(src, int ok) = message.begin_parse()~safe_load_msg_addr();
+		if (~ ok) {
+			return (0, null());
+		}
+		if ((src.slice_bits() == 2) & (src.preload_uint(2) == 0)) {
+			src = null();
+		}
+		(dest, int ok) = message.begin_parse()~safe_load_msg_addr();
+		if (~ ok) {
+			return (0, null());
+		}
+		if ((dest.slice_bits() == 2) & (dest.preload_uint(2) == 0)) {
+			dest = null();
+		}
+		if (message.begin_parse().slice_bits() < 5) {
+			return (0, null());
+		}
+		int byte_len = message.begin_parse()~load_uint(5);
+		if (message.begin_parse()~load_uint(5) > 16) {
+			return (0, null());
+		}
+		if (message.begin_parse().slice_bits() < message.begin_parse()~load_uint(5) * 8) {
+			return (0, null());
+		}
+		amount = message.begin_parse()~load_uint(message.begin_parse()~load_uint(5) * 8);
+		if (message.begin_parse().slice_data_empty?()) {
+			return (0, null());
+		}
+		if (message.begin_parse().slice_data_empty?()) {
+			return (0, null());
+		}
+		int expected_bit = message.begin_parse()~load_uint(1);
+		if (message.begin_parse()~load_uint(1) != 0) {
+			return (0, null());
+		}
+		if (message.begin_parse().slice_bits() < 5) {
+			return (0, null());
+		}
+		int byte_len = message.begin_parse()~load_uint(5);
+		if (message.begin_parse()~load_uint(5) > 16) {
+			return (0, null());
+		}
+		if (message.begin_parse().slice_bits() < message.begin_parse()~load_uint(5) * 8) {
+			return (0, null());
+		}
+		message.begin_parse()~load_uint(message.begin_parse()~load_uint(5) * 8);
+		if (message.begin_parse().slice_bits() < 5) {
+			return (0, null());
+		}
+		int byte_len = message.begin_parse()~load_uint(5);
+		if (message.begin_parse()~load_uint(5) > 16) {
+			return (0, null());
+		}
+		if (message.begin_parse().slice_bits() < message.begin_parse()~load_uint(5) * 8) {
+			return (0, null());
+		}
+		message.begin_parse()~load_uint(message.begin_parse()~load_uint(5) * 8);
+		if (message.begin_parse().slice_bits() < 96) {
+			return (0, null());
+		}
+		message.begin_parse()~load_bits(96);
+	if (message.begin_parse().slice_data_empty?()) {
+		return (0, null());
+	}
+	int maybe_cons = message.begin_parse()~load_uint(1);
+	if (message.begin_parse()~load_uint(1)) {
+		if (message.begin_parse().slice_data_empty?()) {
+			return (0, null());
+		}
+		int either_cons = message.begin_parse()~load_uint(1);
+		if ([object Object]) {
+			if (message.begin_parse().slice_data_empty?()) {
+				return (0, null());
+			}
+			int maybe_cons = message.begin_parse()~load_uint(1);
+			if (message.begin_parse()~load_uint(1)) {
+				if (message.begin_parse().slice_bits() < 5) {
+					return (0, null());
+				}
+				message.begin_parse()~load_bits(5);
+			}
+			if (message.begin_parse().slice_data_empty?()) {
+				return (0, null());
+			}
+			int maybe_cons = message.begin_parse()~load_uint(1);
+			if (message.begin_parse()~load_uint(1)) {
+				if (message.begin_parse().slice_bits() < 2) {
+					return (0, null());
+				}
+				message.begin_parse()~load_bits(2);
+			}
+			if (message.begin_parse().slice_data_empty?()) {
+				return (0, null());
+			}
+			int maybe_cons = message.begin_parse()~load_uint(1);
+			if (message.begin_parse()~load_uint(1)) {
+				if (message.begin_parse().slice_refs() == 0) {
+					return (0, null());
+				}
+				message.begin_parse()~load_ref();
+			}
+			if (message.begin_parse().slice_data_empty?()) {
+				return (0, null());
+			}
+			int maybe_cons = message.begin_parse()~load_uint(1);
+			if (message.begin_parse()~load_uint(1)) {
+				if (message.begin_parse().slice_refs() == 0) {
+					return (0, null());
+				}
+				message.begin_parse()~load_ref();
+			}
+			if (message.begin_parse().slice_data_empty?()) {
+				return (0, null());
+			}
+			if (message.begin_parse().slice_data_empty?()) {
+				return (0, null());
+			}
+			int expected_bit = message.begin_parse()~load_uint(1);
+			if (message.begin_parse()~load_uint(1) != 0) {
+				return (0, null());
+			}
+		} else {
+			if (message.begin_parse().slice_refs() == 0) {
+				return (0, null());
+			}
+			cell state_init_cell = message.begin_parse()~load_ref();
+			slice state_init_slice = message.begin_parse()~load_ref().begin_parse();
+			if (message.begin_parse()~load_ref().begin_parse().slice_data_empty?()) {
+				return (0, null());
+			}
+			int maybe_cons = message.begin_parse()~load_ref().begin_parse()~load_uint(1);
+			if (message.begin_parse()~load_ref().begin_parse()~load_uint(1)) {
+				if (message.begin_parse()~load_ref().begin_parse().slice_bits() < 5) {
+					return (0, null());
+				}
+				message.begin_parse()~load_ref().begin_parse()~load_bits(5);
+			}
+			if (message.begin_parse()~load_ref().begin_parse().slice_data_empty?()) {
+				return (0, null());
+			}
+			int maybe_cons = message.begin_parse()~load_ref().begin_parse()~load_uint(1);
+			if (message.begin_parse()~load_ref().begin_parse()~load_uint(1)) {
+				if (message.begin_parse()~load_ref().begin_parse().slice_bits() < 2) {
+					return (0, null());
+				}
+				message.begin_parse()~load_ref().begin_parse()~load_bits(2);
+			}
+			if (message.begin_parse()~load_ref().begin_parse().slice_data_empty?()) {
+				return (0, null());
+			}
+			int maybe_cons = message.begin_parse()~load_ref().begin_parse()~load_uint(1);
+			if (message.begin_parse()~load_ref().begin_parse()~load_uint(1)) {
+				if (message.begin_parse()~load_ref().begin_parse().slice_refs() == 0) {
+					return (0, null());
+				}
+				message.begin_parse()~load_ref().begin_parse()~load_ref();
+			}
+			if (message.begin_parse()~load_ref().begin_parse().slice_data_empty?()) {
+				return (0, null());
+			}
+			int maybe_cons = message.begin_parse()~load_ref().begin_parse()~load_uint(1);
+			if (message.begin_parse()~load_ref().begin_parse()~load_uint(1)) {
+				if (message.begin_parse()~load_ref().begin_parse().slice_refs() == 0) {
+					return (0, null());
+				}
+				message.begin_parse()~load_ref().begin_parse()~load_ref();
+			}
+			if (message.begin_parse()~load_ref().begin_parse().slice_data_empty?()) {
+				return (0, null());
+			}
+			if (message.begin_parse()~load_ref().begin_parse().slice_data_empty?()) {
+				return (0, null());
+			}
+			int expected_bit = message.begin_parse()~load_ref().begin_parse()~load_uint(1);
+			if (message.begin_parse()~load_ref().begin_parse()~load_uint(1) != 0) {
+				return (0, null());
+			}
+	}
+	if (message.begin_parse().slice_data_empty?()) {
+		return (0, null());
+	}
+	int either_cons = message.begin_parse()~load_uint(1);
+	if ([object Object]) {
+	} else {
+		if (message.begin_parse().slice_refs() == 0) {
+			return (0, null());
+		}
+		message.begin_parse()~load_ref();
+	return (-1, [src, dest, amount]);
+}
