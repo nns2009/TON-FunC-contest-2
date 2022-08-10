@@ -5,6 +5,7 @@
   "module": "es2022",
   "dependencies": {
     "bn.js": "^5.2.1",
+    "lodash-es": "^4.17.21",
     "seedrandom": "^3.0.5",
     "ton": "^12.0.0",
     "ton-contract-executor": "^0.5.2"
@@ -14,6 +15,7 @@
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.0",
+    "@types/lodash-es": "^4.17.6",
     "@types/node": "^18.6.5",
     "@types/seedrandom": "^3.0.2",
     "ts-node": "^10.9.1",

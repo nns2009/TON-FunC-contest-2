@@ -19,7 +19,23 @@
 }
 
 
+int begin_try(int v) impure asm "<{ TRY:<{ ";
+int begin_catch(int v) impure asm "}>CATCH<{ 2DROP";
+int end_try(int v) impure asm "}> }>CONT 1 1 CALLXARGS";
+
 ;; testable
 (int, tuple) validate_message(cell message) method_id {
-  return (-1, unsafe_tuple([null(), null(), 0]));
+  slice cs = message.begin_parse();
+
+  begin_try(1);
+  
+  builder b = begin_cell().store_uint(100, 3);
+  ;;b~impure_touch();
+
+  begin_catch(2);
+  end_try(3);
+
+  return (0, null());
+  ;; return (-1, unsafe_tuple([cs, cs, 1111]));
+  ;; return (-1, unsafe_tuple([src, dest, amount]));
 }
