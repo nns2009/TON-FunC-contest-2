@@ -9,252 +9,254 @@ forall X -> tuple just_tuple(X x) asm "NOP";
 	int amount = 0;
 	slice cs = message.begin_parse();
 	if (cs.slice_data_empty?()) {
-		return (100, null());
+		return (0, null());
 	}
 	int c0 = cs~load_uint(1);
 	if (c0) {
 		if (cs.slice_data_empty?()) {
-			return (101, null());
+			return (0, null());
 		}
 		int c1 = cs~load_uint(1);
 		if (c1) {
 			(src, int ok) = cs~safe_load_msg_addr();
 			if (~ ok) {
-				return (102, null());
+				return (0, null());
 			}
 			if ((src.slice_bits() == 2) & (src.preload_uint(2) == 0)) {
 				src = null();
 			}
 			(dest, int ok) = cs~safe_load_msg_addr();
 			if (~ ok) {
-				return (103, null());
+				return (0, null());
 			}
 			if ((dest.slice_bits() == 2) & (dest.preload_uint(2) == 0)) {
 				dest = null();
 			}
 			if (cs.slice_bits() < 96) {
-				return (104, null());
+				return (0, null());
 			}
 			cs~load_bits(96);
+			amount = null();
 		} else {
 			(src, int ok) = cs~safe_load_msg_addr();
 			if (~ ok) {
-				return (105, null());
+				return (0, null());
 			}
 			if ((src.slice_bits() == 2) & (src.preload_uint(2) == 0)) {
 				src = null();
 			}
 			(dest, int ok) = cs~safe_load_msg_addr();
 			if (~ ok) {
-				return (106, null());
+				return (0, null());
 			}
 			if ((dest.slice_bits() == 2) & (dest.preload_uint(2) == 0)) {
 				dest = null();
 			}
 			if (cs.slice_bits() < 4) {
-				return (107, null());
+				return (0, null());
 			}
 			int byte_len = cs~load_uint(4);
 			if (byte_len > 16) {
-				return (108, null());
+				return (0, null());
 			}
 			if (cs.slice_bits() < byte_len * 8) {
-				return (109, null());
+				return (0, null());
 			}
 			cs~load_uint(byte_len * 8);
+			amount = null();
 		}
 	} else {
 		if (cs.slice_bits() < 3) {
-			return (110, null());
+			return (0, null());
 		}
 		cs~load_bits(3);
 		(src, int ok) = cs~safe_load_msg_addr();
 		if (~ ok) {
-			return (111, null());
+			return (0, null());
 		}
 		if ((src.slice_bits() == 2) & (src.preload_uint(2) == 0)) {
 			src = null();
 		}
 		(dest, int ok) = cs~safe_load_msg_addr();
 		if (~ ok) {
-			return (112, null());
+			return (0, null());
 		}
 		if ((dest.slice_bits() == 2) & (dest.preload_uint(2) == 0)) {
 			dest = null();
 		}
 		if (cs.slice_bits() < 4) {
-			return (113, null());
+			return (0, null());
 		}
 		int byte_len = cs~load_uint(4);
 		if (byte_len > 16) {
-			return (114, null());
+			return (0, null());
 		}
 		if (cs.slice_bits() < byte_len * 8) {
-			return (115, null());
+			return (0, null());
 		}
 		amount = cs~load_uint(byte_len * 8);
 		if (cs.slice_data_empty?()) {
-			return (116, null());
+			return (0, null());
 		}
 		if (cs.slice_data_empty?()) {
-			return (117, null());
+			return (0, null());
 		}
 		int expected_bit = cs~load_uint(1);
 		if (expected_bit != 0) {
-			return (118, null());
+			return (0, null());
 		}
 		if (cs.slice_bits() < 4) {
-			return (119, null());
+			return (0, null());
 		}
 		int byte_len = cs~load_uint(4);
 		if (byte_len > 16) {
-			return (120, null());
+			return (0, null());
 		}
 		if (cs.slice_bits() < byte_len * 8) {
-			return (121, null());
+			return (0, null());
 		}
 		cs~load_uint(byte_len * 8);
 		if (cs.slice_bits() < 4) {
-			return (122, null());
+			return (0, null());
 		}
 		int byte_len = cs~load_uint(4);
 		if (byte_len > 16) {
-			return (123, null());
+			return (0, null());
 		}
 		if (cs.slice_bits() < byte_len * 8) {
-			return (124, null());
+			return (0, null());
 		}
 		cs~load_uint(byte_len * 8);
 		if (cs.slice_bits() < 96) {
-			return (125, null());
+			return (0, null());
 		}
 		cs~load_bits(96);
 	}
 	if (cs.slice_data_empty?()) {
-		return (126, null());
+		return (0, null());
 	}
 	int maybe_cons = cs~load_uint(1);
 	if (maybe_cons) {
 		if (cs.slice_data_empty?()) {
-			return (127, null());
+			return (0, null());
 		}
 		int either_cons = cs~load_uint(1);
 		if (either_cons) {
 			if (cs.slice_refs() == 0) {
-				return (128, null());
+				return (0, null());
 			}
 			cell state_init_cell = cs~load_ref();
 			slice state_init_slice = state_init_cell.begin_parse();
 			if (state_init_slice.slice_data_empty?()) {
-				return (129, null());
+				return (0, null());
 			}
 			int maybe_cons = state_init_slice~load_uint(1);
 			if (maybe_cons) {
 				if (state_init_slice.slice_bits() < 5) {
-					return (130, null());
+					return (0, null());
 				}
 				state_init_slice~load_bits(5);
 			}
 			if (state_init_slice.slice_data_empty?()) {
-				return (131, null());
+				return (0, null());
 			}
 			int maybe_cons = state_init_slice~load_uint(1);
 			if (maybe_cons) {
 				if (state_init_slice.slice_bits() < 2) {
-					return (132, null());
+					return (0, null());
 				}
 				state_init_slice~load_bits(2);
 			}
 			if (state_init_slice.slice_data_empty?()) {
-				return (133, null());
+				return (0, null());
 			}
 			int maybe_cons = state_init_slice~load_uint(1);
 			if (maybe_cons) {
 				if (state_init_slice.slice_refs() == 0) {
-					return (134, null());
+					return (0, null());
 				}
 				state_init_slice~load_ref();
 			}
 			if (state_init_slice.slice_data_empty?()) {
-				return (135, null());
+				return (0, null());
 			}
 			int maybe_cons = state_init_slice~load_uint(1);
 			if (maybe_cons) {
 				if (state_init_slice.slice_refs() == 0) {
-					return (136, null());
+					return (0, null());
 				}
 				state_init_slice~load_ref();
 			}
 			if (state_init_slice.slice_data_empty?()) {
-				return (137, null());
+				return (0, null());
 			}
 			if (state_init_slice.slice_data_empty?()) {
-				return (138, null());
+				return (0, null());
 			}
 			int expected_bit = state_init_slice~load_uint(1);
 			if (expected_bit != 0) {
-				return (139, null());
+				return (0, null());
 			}
 		} else {
 			if (cs.slice_data_empty?()) {
-				return (140, null());
+				return (0, null());
 			}
 			int maybe_cons = cs~load_uint(1);
 			if (maybe_cons) {
 				if (cs.slice_bits() < 5) {
-					return (141, null());
+					return (0, null());
 				}
 				cs~load_bits(5);
 			}
 			if (cs.slice_data_empty?()) {
-				return (142, null());
+				return (0, null());
 			}
 			int maybe_cons = cs~load_uint(1);
 			if (maybe_cons) {
 				if (cs.slice_bits() < 2) {
-					return (143, null());
+					return (0, null());
 				}
 				cs~load_bits(2);
 			}
 			if (cs.slice_data_empty?()) {
-				return (144, null());
+				return (0, null());
 			}
 			int maybe_cons = cs~load_uint(1);
 			if (maybe_cons) {
 				if (cs.slice_refs() == 0) {
-					return (145, null());
+					return (0, null());
 				}
 				cs~load_ref();
 			}
 			if (cs.slice_data_empty?()) {
-				return (146, null());
+				return (0, null());
 			}
 			int maybe_cons = cs~load_uint(1);
 			if (maybe_cons) {
 				if (cs.slice_refs() == 0) {
-					return (147, null());
+					return (0, null());
 				}
 				cs~load_ref();
 			}
 			if (cs.slice_data_empty?()) {
-				return (148, null());
+				return (0, null());
 			}
 			if (cs.slice_data_empty?()) {
-				return (149, null());
+				return (0, null());
 			}
 			int expected_bit = cs~load_uint(1);
 			if (expected_bit != 0) {
-				return (150, null());
+				return (0, null());
 			}
 		}
 	}
 	if (cs.slice_data_empty?()) {
-		return (151, null());
+		return (0, null());
 	}
 	int either_cons = cs~load_uint(1);
 	if (either_cons) {
 		if (cs.slice_refs() == 0) {
-			return (152, null());
+			return (0, null());
 		}
 		cs~load_ref();
 	} else {

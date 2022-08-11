@@ -292,8 +292,11 @@ function g_empty() {
 	// Nothing here
 }
 
+function g_nullify_int(variable: VarInt) {
+	p_line(estr`${variable} = null();`);
+}
 
-const debugMode = true;
+const debugMode = false;
 let debugFailIndex = 100;
 function g_fail() {
 	if (!debugMode) {
@@ -515,12 +518,15 @@ function g_ext_in_msg_info(cs: VarSlice, src: VarSlice, dest: VarSlice, amount: 
 	g_msg_address_ext(cs, src);
 	g_msg_address_int(cs, dest);
 	gd_grams(cs); // import_fee:Grams
+	g_nullify_int(amount);
 }
 
 function g_ext_out_msg_info(cs: VarSlice, src: VarSlice, dest: VarSlice, amount: VarInt): void {
 	g_msg_address_int(cs, src);
 	g_msg_address_ext(cs, dest);
 	gd_bits(cs, e_const_int(96)); // created_lt:uint64 created_at:uint32
+	g_nullify_int(amount);
+
 }
 
 function g_common_msg_info(cs: VarSlice, src: VarSlice, dest: VarSlice, amount: VarInt) {

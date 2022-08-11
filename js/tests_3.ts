@@ -65,6 +65,31 @@ await testMessage(cell(new InternalMessage({
 	createdAt: 55555,
 	createdLt: 666666,
 })));
+await testMessage(cell(new InternalMessage({
+	from: addr1,
+	to: null as any as Address,
+	value: toNano('123456789123456789'),
+	bounce: false,
+	body: new CommonMessageInfo({
+		stateInit: undefined,
+		body: new CellMessage(cell()),
+	}),
+	createdAt: 55555,
+	createdLt: 666666,
+})));
+await testMessage(cell(new InternalMessage({
+	from: null,
+	to: addr2,
+	value: toNano(1),
+	bounce: false,
+	body: new CommonMessageInfo({
+		stateInit: undefined,
+		body: new CellMessage(cell()),
+	}),
+	createdAt: 55555,
+	createdLt: 666666,
+})));
+
 await testMessage(cell(new ExternalMessage({
 	from: addr3,
 	to: addr4,
