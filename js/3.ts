@@ -46,7 +46,7 @@ type Block = () => void;
 type Validator = (cs: VarSlice) => void;
 
 let currentVarCount = 0;
-function varName(prefix: string): string {
+function allocateVarName(prefix: string): string {
 	return prefix + (currentVarCount++);
 }
 function variable(type: string, name: string): Variable {
@@ -162,7 +162,7 @@ function e_slice_refs(slice: ExpSlice): ExpInt {
 function unsafe_load_uint(slice: ExpSlice, bitLength: ExpInt): ExpInt {
 	return e_raw_int(() => estr`${slice}~load_uint(${bitLength})`);
 }
-function unsafe_load_ref(slice: ExpSlice): ExpCell {
+function unsafe_load_ref(slice: VarSlice): ExpCell {
 	return e_raw_cell(() => estr`${slice}~load_ref()`);
 }
 
@@ -183,7 +183,7 @@ function p_if(condition: ExpBool, block: Block) {
 }
 
 function p_if_else(condition: ExpBool, ifBlock: Block, elseBlock: Block) {
-	p_line(`if (${condition}) {`);
+	p_line(estr`if (${condition}) {`);
 
 	p_indent();
 	ifBlock();
@@ -194,6 +194,8 @@ function p_if_else(condition: ExpBool, ifBlock: Block, elseBlock: Block) {
 	p_indent();
 	elseBlock();
 	p_unindent();
+
+	p_line('}');
 }
 
 function g_statement(exp: Expression) {
@@ -206,36 +208,46 @@ function g_declare(variable: VarInt): VarInt;
 function g_declare(variable: VarCell): VarCell;
 function g_declare(variable: VarSlice): VarSlice;
 function g_declare(variable: Variable): Variable {
-	p_line(`${variable.type} ${variable.flatten()};`);
+	p_line(
+		`${variable.type} ${variable.flatten()}`
+		+ (variable.type === 'slice' ? ' = null()' :
+			variable.type === 'int' ? ' = 0' : '')
+		+ ';'
+	);
 	return variable;
 }
 
-function g_assign(tovar: string, exp: ExpBool): VarBool;
-function g_assign(tovar: string, exp: ExpInt): VarInt;
-function g_assign(tovar: string, exp: ExpCell): VarCell;
-function g_assign(tovar: string, exp: ExpSlice): VarSlice;
-function g_assign(tovar: VarBoolTarget, exp: ExpBool): VarBool;
-function g_assign(tovar: VarIntTarget, exp: ExpInt): VarInt;
-function g_assign(tovar: VarCellTarget, exp: ExpCell): VarCell;
-function g_assign(tovar: VarSliceTarget, exp: ExpSlice): VarSlice;
-function g_assign(
-	tovar: string | VarBool | VarInt | VarCell | VarSlice,
-	exp: ExpBool | ExpInt | ExpCell | ExpSlice
-): VarBool | VarInt | VarCell | VarSlice
-{
-	if ((tovar as any).name) {
-		const tovar2 = tovar as Variable; // ! Dirty hack against typechecker
-		p_line(`${tovar2.flatten()} = ${exp.flatten()};`);
-		return tovar2 as VarBool;  // ! Dirty hack against typechecker
-	} else {
-		const varName = tovar as string;
-
-		p_line(`${exp.type} ${varName} = ${exp.flatten()};`);
-		return {
-			...exp,
-			name: varName,
-		};
-	}
+function gab_assign(name: string, exp: ExpBool): VarBool {
+	p_line(`${exp.type} ${name} = ${exp.flatten()};`);
+	return { type: exp.type, subtype: exp.subtype, name, flatten: () => name };
+}
+function gai_assign(name: string, exp: ExpInt): VarInt {
+	p_line(`${exp.type} ${name} = ${exp.flatten()};`);
+	return { type: exp.type, name, flatten: () => name };
+}
+function gac_assign(name: string, exp: ExpCell): VarCell {
+	p_line(`${exp.type} ${name} = ${exp.flatten()};`);
+	return { type: exp.type, name, flatten: () => name };
+}
+function gas_assign(name: string, exp: ExpSlice): VarSlice {
+	p_line(`${exp.type} ${name} = ${exp.flatten()};`);
+	return { type: exp.type, name, flatten: () => name };
+}
+function gb_assign(tovar: VarBool, exp: ExpBool): VarBool {
+	p_line(`${tovar.flatten()} = ${exp.flatten()};`);
+	return tovar;
+}
+function gi_assign(tovar: VarInt, exp: ExpInt): VarInt {
+	p_line(`${tovar.flatten()} = ${exp.flatten()};`);
+	return tovar;
+}
+function gc_assign(tovar: VarCell, exp: ExpCell): VarCell {
+	p_line(`${tovar.flatten()} = ${exp.flatten()};`);
+	return tovar;
+}
+function gs_assign(tovar: VarSlice, exp: ExpSlice): VarSlice {
+	p_line(`${tovar.flatten()} = ${exp.flatten()};`);
+	return tovar;
 }
 
 // function g_target(target: undefined, exp: ExpBool | ExpInt | ExpCell | ExpSlice): void;
@@ -262,26 +274,33 @@ function g_maybe_of(cs: VarSlice, validator: Validator) {
 	);
 }
 
-function g_either_of(cs: VarSlice, validatorA: Validator, validatorB: Validator) {
+function g_either_of(cs: VarSlice, validator0: Validator, validator1: Validator) {
 	const either_cons_var = gs_bit(cs, 'either_cons');
 	p_if_else(
 		either_cons_var,
-		() => validatorA(cs),
-		() => validatorB(cs),
+		() => validator1(cs),
+		() => validator0(cs),
 	);
 }
 
 function g_load_ref(cs: VarSlice, name: string): VarCell {
 	g_validation(e_no_refs(cs));
-	return g_assign(name, unsafe_load_ref(cs));
+	return gac_assign(name, unsafe_load_ref(cs));
 }
 
 function g_empty() {
 	// Nothing here
 }
 
+
+const debugMode = true;
+let debugFailIndex = 100;
 function g_fail() {
-	p_line('return (0, null());');
+	if (!debugMode) {
+		p_line('return (0, null());');
+	} else {
+		p_line(`return (${debugFailIndex++}, null());`);
+	}
 }
 
 function g_ref(cs: VarSlice) {
@@ -328,19 +347,19 @@ function gd_bit(cs: VarSlice): void {
 	g_validation(e_slice_data_empty(cs));
 	g_statement(e_raw_bool(() => estr`${cs}~load_uint(1)`));
 }
-function gs_bit(cs: VarSlice, target: VarBoolTarget): VarBool {
+function gs_bit(cs: VarSlice, name: string): VarBool {
 	g_validation(e_slice_data_empty(cs));
-	return g_assign(target, e_raw_bool(() => estr`${cs}~load_uint(1)`));
+	return gab_assign(name, e_raw_bool(() => estr`${cs}~load_uint(1)`));
 }
 
 function gd_bits(cs: VarSlice, count: ExpInt): void {
 	checkEnoughBits(cs, count);
 	g_statement(e_raw_int(() => estr`${cs}~load_bits(${count})`));		
 }
-function gs_bits(cs: VarSlice, count: ExpInt, target: VarIntTarget): VarInt {
-	checkEnoughBits(cs, count);
-	return g_assign(target, e_raw_int(() => estr`${cs}~load_bits(${count})`));		
-}
+// function gs_bits(cs: VarSlice, count: ExpInt, target: VarIntTarget): VarInt {
+// 	checkEnoughBits(cs, count);
+// 	return g_assign(target, e_raw_int(() => estr`${cs}~load_bits(${count})`));		
+// }
 
 
 function g_uint(cs: VarSlice, bitLength: ExpInt): void;
@@ -348,14 +367,22 @@ function g_uint(cs: VarSlice, bitLength: ExpInt, name: VarIntTarget): VarInt;
 function g_uint(cs: VarSlice, bitLength: ExpInt, name?: VarIntTarget): VarInt | void {
 	checkEnoughBits(cs, bitLength);
 	const uint = unsafe_load_uint(cs, bitLength);
-	if (name !== undefined) {
-		return g_assign(name, uint);
-	} else {
+	if (name === undefined) {
 		g_statement(uint);
+	} else if (typeof name === 'string') {
+		return gai_assign(name, uint);
+	} else {
+		return gi_assign(name, uint);
 	}
 }
 
 
+function g_number_less_than(cs: VarSlice, max: number, name: string): VarInt {
+	const bitLength = Math.ceil(Math.log2(max));
+	const num = g_uint(cs, e_const_int(bitLength), name);
+	g_validation(e_greater(num, e_const_int(max)));
+	return num;
+}
 function g_number_up_to(cs: VarSlice, max: number, name: string): VarInt {
 	const bitLength = Math.ceil(Math.log2(max + 1));
 	const num = g_uint(cs, e_const_int(bitLength), name);
@@ -377,11 +404,11 @@ function g_anycast(cs: VarSlice) {
 
 
 function gd_varUInteger(cs: VarSlice, maxBitLength: number): void {
-	const byte_len_var = g_number_up_to(cs, maxBitLength, 'byte_len');
+	const byte_len_var = g_number_less_than(cs, maxBitLength, 'byte_len');
 	g_uint(cs, e_times(byte_len_var, e_const_int(8)));
 }
 function gs_varUInteger(cs: VarSlice, maxBitLength: number, target: VarInt): VarInt {
-	const byte_len_var = g_number_up_to(cs, maxBitLength, 'byte_len');
+	const byte_len_var = g_number_less_than(cs, maxBitLength, 'byte_len');
 	return g_uint(cs, e_times(byte_len_var, e_const_int(8)), target);
 }
 
@@ -427,7 +454,7 @@ function g_built_in_address(cs: VarSlice, addrVar: VarSlice) {
 	p_if(
 		e_raw_bool(() => estr`(${addrVar}.slice_bits() == 2) & (${addrVar}.preload_uint(2) == 0)`),
 		() => {
-			g_assign(addrVar, e_raw_slice(() => e_null));
+			gs_assign(addrVar, e_raw_slice(() => e_null));
 		}
 	);
 }
@@ -504,7 +531,7 @@ function g_common_msg_info(cs: VarSlice, src: VarSlice, dest: VarSlice, amount: 
 			const c1 = gs_bit(cs, 'c1');
 			p_if_else(
 				c1,
-				() => () => g_ext_out_msg_info(cs, src, dest, amount), // 11
+				() => g_ext_out_msg_info(cs, src, dest, amount), // 11
 				() => g_ext_in_msg_info(cs, src, dest, amount), // 10
 			)
 		},
@@ -528,7 +555,7 @@ function g_state_init(cs: VarSlice) {
 
 function g_ref_state_init(cs: VarSlice) {
 	const ref_var = g_load_ref(cs, 'state_init_cell');
-	const si_slice_var = g_assign('state_init_slice', e_begin_parse(ref_var))
+	const si_slice_var = gas_assign('state_init_slice', e_begin_parse(ref_var))
 	g_state_init(si_slice_var);
 }
 
@@ -561,8 +588,9 @@ function g_message_any(cs: VarSlice, src: VarSlice, dest: VarSlice, amount: VarI
 }
 
 function g_validator() {
-	p_line(`(slice, slice, int) safe_load_msg_addr(slice sc) asm(-> 1 0 2) "LDMSGADDRQ NULLROTRIFNOT";\n`);
-	p_line('() recv_internal() {}\n');
+	p_line(`forall X -> tuple just_tuple(X x) asm "NOP";`);
+	p_line(`(slice, (slice, int)) safe_load_msg_addr(slice sc) asm(-> 1 0 2) "LDMSGADDRQ NULLROTRIFNOT";\n`);
+	p_line('() recv_internal() { }\n');
 
 	p_line('(int, tuple) validate_message(cell message) method_id {');
 	p_indent();
@@ -570,9 +598,12 @@ function g_validator() {
 	const src = g_declare(varSlice('src'));
 	const dest = g_declare(varSlice('dest'));
 	const amount = g_declare(varInt('amount'));
-	const cs = g_assign('cs', e_begin_parse(varCell('message')));
+	const cs = gas_assign('cs', e_begin_parse(varCell('message')));
+	// console.log('``', `${cs}`);
+	// console.log('estr``', estr`${cs}`);
+	// console.log(JSON.stringify(cs));
 	g_message_any(cs, src, dest, amount);
-	p_line(estr`return (-1, [${src}, ${dest}, ${amount}]);`);
+	p_line(estr`return (-1, just_tuple([${src}, ${dest}, ${amount}]));`);
 
 	p_unindent();
 	p_line('}');
@@ -581,4 +612,4 @@ function g_validator() {
 
 g_validator();
 
-fs.writeFileSync('func/3.fc', funcProgram, 'utf-8');
+fs.writeFileSync('./func/3.fc', funcProgram, 'utf-8');

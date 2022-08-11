@@ -38,7 +38,8 @@ async function testEncode(rawAddress: string, userFriendlyAddress: string) {
 
 
 await testEncode(
-	'0:588af75cd06024fa79dccda32760db928e9797bb69c94b70d9e0aa8b8e8b17e6','EQBYivdc0GAk-nnczaMnYNuSjpeXu2nJS3DZ4KqLjosX5sVC'
+	'0:588af75cd06024fa79dccda32760db928e9797bb69c94b70d9e0aa8b8e8b17e6',
+	'EQBYivdc0GAk-nnczaMnYNuSjpeXu2nJS3DZ4KqLjosX5sVC'
 );
 await testEncode(
 	'0:21137b0bc47669b3267f1de70cbb0cef5c728b8d8c7890451e8613b2d8998270',

@@ -1,240 +1,263 @@
-(slice, slice, int) safe_load_msg_addr(slice sc) asm(-> 1 0 2) "LDMSGADDRQ NULLROTRIFNOT";
+forall X -> tuple just_tuple(X x) asm "NOP";
+(slice, (slice, int)) safe_load_msg_addr(slice sc) asm(-> 1 0 2) "LDMSGADDRQ NULLROTRIFNOT";
 
-() recv_internal() {}
+() recv_internal() { }
 
 (int, tuple) validate_message(cell message) method_id {
-	slice src;
-	slice dest;
-	int amount;
+	slice src = null();
+	slice dest = null();
+	int amount = 0;
 	slice cs = message.begin_parse();
-	if (message.begin_parse().slice_data_empty?()) {
-		return (0, null());
+	if (cs.slice_data_empty?()) {
+		return (100, null());
 	}
-	int c0 = message.begin_parse()~load_uint(1);
-	if ([object Object]) {
-		if (message.begin_parse().slice_data_empty?()) {
-			return (0, null());
+	int c0 = cs~load_uint(1);
+	if (c0) {
+		if (cs.slice_data_empty?()) {
+			return (101, null());
 		}
-		int c1 = message.begin_parse()~load_uint(1);
-		if ([object Object]) {
-		} else {
-			(src, int ok) = message.begin_parse()~safe_load_msg_addr();
+		int c1 = cs~load_uint(1);
+		if (c1) {
+			(src, int ok) = cs~safe_load_msg_addr();
 			if (~ ok) {
-				return (0, null());
+				return (102, null());
 			}
 			if ((src.slice_bits() == 2) & (src.preload_uint(2) == 0)) {
 				src = null();
 			}
-			(dest, int ok) = message.begin_parse()~safe_load_msg_addr();
+			(dest, int ok) = cs~safe_load_msg_addr();
 			if (~ ok) {
-				return (0, null());
+				return (103, null());
 			}
 			if ((dest.slice_bits() == 2) & (dest.preload_uint(2) == 0)) {
 				dest = null();
 			}
-			if (message.begin_parse().slice_bits() < 5) {
-				return (0, null());
+			if (cs.slice_bits() < 96) {
+				return (104, null());
 			}
-			int byte_len = message.begin_parse()~load_uint(5);
-			if (message.begin_parse()~load_uint(5) > 16) {
-				return (0, null());
+			cs~load_bits(96);
+		} else {
+			(src, int ok) = cs~safe_load_msg_addr();
+			if (~ ok) {
+				return (105, null());
 			}
-			if (message.begin_parse().slice_bits() < message.begin_parse()~load_uint(5) * 8) {
-				return (0, null());
+			if ((src.slice_bits() == 2) & (src.preload_uint(2) == 0)) {
+				src = null();
 			}
-			message.begin_parse()~load_uint(message.begin_parse()~load_uint(5) * 8);
-	} else {
-		if (message.begin_parse().slice_bits() < 3) {
-			return (0, null());
+			(dest, int ok) = cs~safe_load_msg_addr();
+			if (~ ok) {
+				return (106, null());
+			}
+			if ((dest.slice_bits() == 2) & (dest.preload_uint(2) == 0)) {
+				dest = null();
+			}
+			if (cs.slice_bits() < 4) {
+				return (107, null());
+			}
+			int byte_len = cs~load_uint(4);
+			if (byte_len > 16) {
+				return (108, null());
+			}
+			if (cs.slice_bits() < byte_len * 8) {
+				return (109, null());
+			}
+			cs~load_uint(byte_len * 8);
 		}
-		message.begin_parse()~load_bits(3);
-		(src, int ok) = message.begin_parse()~safe_load_msg_addr();
+	} else {
+		if (cs.slice_bits() < 3) {
+			return (110, null());
+		}
+		cs~load_bits(3);
+		(src, int ok) = cs~safe_load_msg_addr();
 		if (~ ok) {
-			return (0, null());
+			return (111, null());
 		}
 		if ((src.slice_bits() == 2) & (src.preload_uint(2) == 0)) {
 			src = null();
 		}
-		(dest, int ok) = message.begin_parse()~safe_load_msg_addr();
+		(dest, int ok) = cs~safe_load_msg_addr();
 		if (~ ok) {
-			return (0, null());
+			return (112, null());
 		}
 		if ((dest.slice_bits() == 2) & (dest.preload_uint(2) == 0)) {
 			dest = null();
 		}
-		if (message.begin_parse().slice_bits() < 5) {
-			return (0, null());
+		if (cs.slice_bits() < 4) {
+			return (113, null());
 		}
-		int byte_len = message.begin_parse()~load_uint(5);
-		if (message.begin_parse()~load_uint(5) > 16) {
-			return (0, null());
+		int byte_len = cs~load_uint(4);
+		if (byte_len > 16) {
+			return (114, null());
 		}
-		if (message.begin_parse().slice_bits() < message.begin_parse()~load_uint(5) * 8) {
-			return (0, null());
+		if (cs.slice_bits() < byte_len * 8) {
+			return (115, null());
 		}
-		amount = message.begin_parse()~load_uint(message.begin_parse()~load_uint(5) * 8);
-		if (message.begin_parse().slice_data_empty?()) {
-			return (0, null());
+		amount = cs~load_uint(byte_len * 8);
+		if (cs.slice_data_empty?()) {
+			return (116, null());
 		}
-		if (message.begin_parse().slice_data_empty?()) {
-			return (0, null());
+		if (cs.slice_data_empty?()) {
+			return (117, null());
 		}
-		int expected_bit = message.begin_parse()~load_uint(1);
-		if (message.begin_parse()~load_uint(1) != 0) {
-			return (0, null());
+		int expected_bit = cs~load_uint(1);
+		if (expected_bit != 0) {
+			return (118, null());
 		}
-		if (message.begin_parse().slice_bits() < 5) {
-			return (0, null());
+		if (cs.slice_bits() < 4) {
+			return (119, null());
 		}
-		int byte_len = message.begin_parse()~load_uint(5);
-		if (message.begin_parse()~load_uint(5) > 16) {
-			return (0, null());
+		int byte_len = cs~load_uint(4);
+		if (byte_len > 16) {
+			return (120, null());
 		}
-		if (message.begin_parse().slice_bits() < message.begin_parse()~load_uint(5) * 8) {
-			return (0, null());
+		if (cs.slice_bits() < byte_len * 8) {
+			return (121, null());
 		}
-		message.begin_parse()~load_uint(message.begin_parse()~load_uint(5) * 8);
-		if (message.begin_parse().slice_bits() < 5) {
-			return (0, null());
+		cs~load_uint(byte_len * 8);
+		if (cs.slice_bits() < 4) {
+			return (122, null());
 		}
-		int byte_len = message.begin_parse()~load_uint(5);
-		if (message.begin_parse()~load_uint(5) > 16) {
-			return (0, null());
+		int byte_len = cs~load_uint(4);
+		if (byte_len > 16) {
+			return (123, null());
 		}
-		if (message.begin_parse().slice_bits() < message.begin_parse()~load_uint(5) * 8) {
-			return (0, null());
+		if (cs.slice_bits() < byte_len * 8) {
+			return (124, null());
 		}
-		message.begin_parse()~load_uint(message.begin_parse()~load_uint(5) * 8);
-		if (message.begin_parse().slice_bits() < 96) {
-			return (0, null());
+		cs~load_uint(byte_len * 8);
+		if (cs.slice_bits() < 96) {
+			return (125, null());
 		}
-		message.begin_parse()~load_bits(96);
-	if (message.begin_parse().slice_data_empty?()) {
-		return (0, null());
+		cs~load_bits(96);
 	}
-	int maybe_cons = message.begin_parse()~load_uint(1);
-	if (message.begin_parse()~load_uint(1)) {
-		if (message.begin_parse().slice_data_empty?()) {
-			return (0, null());
+	if (cs.slice_data_empty?()) {
+		return (126, null());
+	}
+	int maybe_cons = cs~load_uint(1);
+	if (maybe_cons) {
+		if (cs.slice_data_empty?()) {
+			return (127, null());
 		}
-		int either_cons = message.begin_parse()~load_uint(1);
-		if ([object Object]) {
-			if (message.begin_parse().slice_data_empty?()) {
-				return (0, null());
+		int either_cons = cs~load_uint(1);
+		if (either_cons) {
+			if (cs.slice_refs() == 0) {
+				return (128, null());
 			}
-			int maybe_cons = message.begin_parse()~load_uint(1);
-			if (message.begin_parse()~load_uint(1)) {
-				if (message.begin_parse().slice_bits() < 5) {
-					return (0, null());
+			cell state_init_cell = cs~load_ref();
+			slice state_init_slice = state_init_cell.begin_parse();
+			if (state_init_slice.slice_data_empty?()) {
+				return (129, null());
+			}
+			int maybe_cons = state_init_slice~load_uint(1);
+			if (maybe_cons) {
+				if (state_init_slice.slice_bits() < 5) {
+					return (130, null());
 				}
-				message.begin_parse()~load_bits(5);
+				state_init_slice~load_bits(5);
 			}
-			if (message.begin_parse().slice_data_empty?()) {
-				return (0, null());
+			if (state_init_slice.slice_data_empty?()) {
+				return (131, null());
 			}
-			int maybe_cons = message.begin_parse()~load_uint(1);
-			if (message.begin_parse()~load_uint(1)) {
-				if (message.begin_parse().slice_bits() < 2) {
-					return (0, null());
+			int maybe_cons = state_init_slice~load_uint(1);
+			if (maybe_cons) {
+				if (state_init_slice.slice_bits() < 2) {
+					return (132, null());
 				}
-				message.begin_parse()~load_bits(2);
+				state_init_slice~load_bits(2);
 			}
-			if (message.begin_parse().slice_data_empty?()) {
-				return (0, null());
+			if (state_init_slice.slice_data_empty?()) {
+				return (133, null());
 			}
-			int maybe_cons = message.begin_parse()~load_uint(1);
-			if (message.begin_parse()~load_uint(1)) {
-				if (message.begin_parse().slice_refs() == 0) {
-					return (0, null());
+			int maybe_cons = state_init_slice~load_uint(1);
+			if (maybe_cons) {
+				if (state_init_slice.slice_refs() == 0) {
+					return (134, null());
 				}
-				message.begin_parse()~load_ref();
+				state_init_slice~load_ref();
 			}
-			if (message.begin_parse().slice_data_empty?()) {
-				return (0, null());
+			if (state_init_slice.slice_data_empty?()) {
+				return (135, null());
 			}
-			int maybe_cons = message.begin_parse()~load_uint(1);
-			if (message.begin_parse()~load_uint(1)) {
-				if (message.begin_parse().slice_refs() == 0) {
-					return (0, null());
+			int maybe_cons = state_init_slice~load_uint(1);
+			if (maybe_cons) {
+				if (state_init_slice.slice_refs() == 0) {
+					return (136, null());
 				}
-				message.begin_parse()~load_ref();
+				state_init_slice~load_ref();
 			}
-			if (message.begin_parse().slice_data_empty?()) {
-				return (0, null());
+			if (state_init_slice.slice_data_empty?()) {
+				return (137, null());
 			}
-			if (message.begin_parse().slice_data_empty?()) {
-				return (0, null());
+			if (state_init_slice.slice_data_empty?()) {
+				return (138, null());
 			}
-			int expected_bit = message.begin_parse()~load_uint(1);
-			if (message.begin_parse()~load_uint(1) != 0) {
-				return (0, null());
+			int expected_bit = state_init_slice~load_uint(1);
+			if (expected_bit != 0) {
+				return (139, null());
 			}
 		} else {
-			if (message.begin_parse().slice_refs() == 0) {
-				return (0, null());
+			if (cs.slice_data_empty?()) {
+				return (140, null());
 			}
-			cell state_init_cell = message.begin_parse()~load_ref();
-			slice state_init_slice = message.begin_parse()~load_ref().begin_parse();
-			if (message.begin_parse()~load_ref().begin_parse().slice_data_empty?()) {
-				return (0, null());
-			}
-			int maybe_cons = message.begin_parse()~load_ref().begin_parse()~load_uint(1);
-			if (message.begin_parse()~load_ref().begin_parse()~load_uint(1)) {
-				if (message.begin_parse()~load_ref().begin_parse().slice_bits() < 5) {
-					return (0, null());
+			int maybe_cons = cs~load_uint(1);
+			if (maybe_cons) {
+				if (cs.slice_bits() < 5) {
+					return (141, null());
 				}
-				message.begin_parse()~load_ref().begin_parse()~load_bits(5);
+				cs~load_bits(5);
 			}
-			if (message.begin_parse()~load_ref().begin_parse().slice_data_empty?()) {
-				return (0, null());
+			if (cs.slice_data_empty?()) {
+				return (142, null());
 			}
-			int maybe_cons = message.begin_parse()~load_ref().begin_parse()~load_uint(1);
-			if (message.begin_parse()~load_ref().begin_parse()~load_uint(1)) {
-				if (message.begin_parse()~load_ref().begin_parse().slice_bits() < 2) {
-					return (0, null());
+			int maybe_cons = cs~load_uint(1);
+			if (maybe_cons) {
+				if (cs.slice_bits() < 2) {
+					return (143, null());
 				}
-				message.begin_parse()~load_ref().begin_parse()~load_bits(2);
+				cs~load_bits(2);
 			}
-			if (message.begin_parse()~load_ref().begin_parse().slice_data_empty?()) {
-				return (0, null());
+			if (cs.slice_data_empty?()) {
+				return (144, null());
 			}
-			int maybe_cons = message.begin_parse()~load_ref().begin_parse()~load_uint(1);
-			if (message.begin_parse()~load_ref().begin_parse()~load_uint(1)) {
-				if (message.begin_parse()~load_ref().begin_parse().slice_refs() == 0) {
-					return (0, null());
+			int maybe_cons = cs~load_uint(1);
+			if (maybe_cons) {
+				if (cs.slice_refs() == 0) {
+					return (145, null());
 				}
-				message.begin_parse()~load_ref().begin_parse()~load_ref();
+				cs~load_ref();
 			}
-			if (message.begin_parse()~load_ref().begin_parse().slice_data_empty?()) {
-				return (0, null());
+			if (cs.slice_data_empty?()) {
+				return (146, null());
 			}
-			int maybe_cons = message.begin_parse()~load_ref().begin_parse()~load_uint(1);
-			if (message.begin_parse()~load_ref().begin_parse()~load_uint(1)) {
-				if (message.begin_parse()~load_ref().begin_parse().slice_refs() == 0) {
-					return (0, null());
+			int maybe_cons = cs~load_uint(1);
+			if (maybe_cons) {
+				if (cs.slice_refs() == 0) {
+					return (147, null());
 				}
-				message.begin_parse()~load_ref().begin_parse()~load_ref();
+				cs~load_ref();
 			}
-			if (message.begin_parse()~load_ref().begin_parse().slice_data_empty?()) {
-				return (0, null());
+			if (cs.slice_data_empty?()) {
+				return (148, null());
 			}
-			if (message.begin_parse()~load_ref().begin_parse().slice_data_empty?()) {
-				return (0, null());
+			if (cs.slice_data_empty?()) {
+				return (149, null());
 			}
-			int expected_bit = message.begin_parse()~load_ref().begin_parse()~load_uint(1);
-			if (message.begin_parse()~load_ref().begin_parse()~load_uint(1) != 0) {
-				return (0, null());
+			int expected_bit = cs~load_uint(1);
+			if (expected_bit != 0) {
+				return (150, null());
 			}
-	}
-	if (message.begin_parse().slice_data_empty?()) {
-		return (0, null());
-	}
-	int either_cons = message.begin_parse()~load_uint(1);
-	if ([object Object]) {
-	} else {
-		if (message.begin_parse().slice_refs() == 0) {
-			return (0, null());
 		}
-		message.begin_parse()~load_ref();
-	return (-1, [src, dest, amount]);
+	}
+	if (cs.slice_data_empty?()) {
+		return (151, null());
+	}
+	int either_cons = cs~load_uint(1);
+	if (either_cons) {
+		if (cs.slice_refs() == 0) {
+			return (152, null());
+		}
+		cs~load_ref();
+	} else {
+	}
+	return (-1, just_tuple([src, dest, amount]));
 }

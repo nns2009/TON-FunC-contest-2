@@ -169,11 +169,12 @@ export const addressEqual = (a: Address | null, b: Address | null) =>
 // ------------------------ Messages ------------------------
 
 export const internalMessage = (
-	address: Address,
+	fromAddress: Address, toAddress: Address,
 	value: number | BN, bounce: boolean,
 	body: Cell | undefined, stateInit?: StateInit
 ) => new InternalMessage({
-	to: address,
+	from: fromAddress,
+	to: toAddress,
 	value,
 	bounce,
 	body: new CommonMessageInfo({
@@ -183,8 +184,9 @@ export const internalMessage = (
 });
 
 export const dummyInternalMessage = (body: Cell) => internalMessage(
+	Address.parse('EQBYivdc0GAk-nnczaMnYNuSjpeXu2nJS3DZ4KqLjosX5sVC'),
 	Address.parse('EQD4FPq-PRDieyQKkizFTRtSDyucUIqrj0v_zXJmqaDp6_0t'),
-	toNano(0),
+	toNano(333),
 	false,
 	body,
 );
